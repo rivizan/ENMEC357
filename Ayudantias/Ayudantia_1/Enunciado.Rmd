@@ -1,0 +1,67 @@
+---
+title: "Ayudantía 1"
+author: "Ricardo Villarreal"
+date: "31/8/2020"
+output: 
+  pdf_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Crear un Proyecto
+  1. Obtenga su directorio de trabajo con `getwd()`. ¿Cuál es?
+  1. Cree un proyecto en *R Studio* y llámelo `ayudantia_1`
+  1. Repita  el paso 1. ¿Hay alguna diferencia?
+
+
+# Markdown
+Para comenzar a responder esta parte de la ayudantía, cree una sección que se llame *Markdown*. Desde el siguiente link: [[`click`](https://help.twitter.com/es/managing-your-account/how-to-deactivate-twitter-account)] copie los pasos para desactivar una cuenta de twitter y aplique el siguiente formato al texto:
+
+1. Cree dos subsecciones lamadas *Cómo desactivar tu cuenta* y *Antes de desactivar tu cuenta, debes saber lo siguiente*.
+1. Enumere los pasos de la primera subsección
+1. Deje en negritas las palabras que aparecen como tal en el sitio
+1. Agregue el hipervínculo del primer punto
+1. Ordene en *bullets* los pasos de la segunda subsección
+1. Deje en cursiva los nombres de compañías tecnológicas
+1. Haga una tabla de 5 letras con sus mayúsculas y minúsculas (?)
+
+
+
+
+
+# R Markdown
+
+## Chunk Options
+
+A continuación se presentan 4 comandos que arrojan distintos tipos de resultados:
+```{r eval = F}
+print("This is a result")
+message("This is a message")
+warning("This is a warning")
+stop("This is an error")
+```
+Se le pide que
+
+1. Compile el comando `print` y muestre el código junto con el resultado.
+1. Compile el comando `print` y muestre el resultado sin el código.
+1. Compile el comando `print` y muestre el código sin el resultado.
+1. Compile el comando `message` sin que aparezca el mensaje.
+1. Compile el comando `warning` sin que aparezca la advertencia.
+1. Compile el comando `stop`.
+
+## Interactive Document
+
+Genere dos variables aleatorias, $x$ y $\varepsilon$, que se distribuyen i.i.d. $\sim N(0, 1)$, con 100 observaciones para cada una.
+Luego genere la variable $y$ tal que
+\[y_i = \beta_0 + x_i\beta_1 + \varepsilon_i\]
+con $\beta_0 = 1$ y $\beta_1 = 2$. Finalmente guarde $x$ e $y$ en un `dataframe`. Se le pide que:
+
+1. Genere una tabla para el pdf con los 10 primeros valores de $x$ e $y$. El nombre de esta tabla debe ser: *Diez observaciones de la variable*.
+1. Grafique un *scatterplot* de ambas variables
+1. Corra una regresión lineal y muestre los valores de sus estimaciones como parte del texto (no como resultado del código!!).
+
+
