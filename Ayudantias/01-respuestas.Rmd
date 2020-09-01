@@ -1,0 +1,115 @@
+---
+title: "Ayudantia 1"
+author: "Ricardo Villarreal"
+date: "31/8/2020"
+output: pdf_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Markdown
+
+## Cómo desactivar tu cuenta
+
+
+1. Haz clic en [Configuración y privacidad](https://twitter.com/settings/account) en el menú desplegable debajo de tu ícono de **perfil**. <https://twitter.com/settings/account>
+
+1. En la pestaña **Cuenta**, haz clic en **Desactiva tu cuenta** en la parte inferior de la página.
+
+1. **Lee** la información sobre desactivación de cuentas y luego haz clic en **Desactivar @usuario**.
+
+1. **Ingresa tu contraseña** cuando se la solicite y haz clic en el botón **Desactivar cuenta** para confirmar que deseas continuar.
+
+## Antes de desactivar tu cuenta, debes saber lo siguiente
+
+- No es necesario que desactives tu cuenta para cambiar tu nombre de usuario o tu dirección de correo electrónico; puedes cambiarlos en cualquier momento en la configuración de la cuenta.
+- Para usar un nombre de usuario o una dirección de correo electrónico en otra cuenta, primero debes cambiarlos y luego confirmar el cambio antes de la desactivación.  Consulta la siguiente sección sobre cómo hacer que tu nombre de usuario o tu dirección de correo electrónico estén disponibles para su reutilización antes de desactivar tu cuenta.
+- No tenemos control sobre el contenido indexado por los motores de búsqueda como *Google* o *Bing*.
+- Cuando se desactive, tu cuenta de *Twitter*, así como tu nombre visible, tu nombre de usuario y tu perfil público, ya no serán visibles en twitter.com, *Twitter* para *iOS* y *Twitter* para *Android*.
+- Durante 30 días a partir de la desactivación, puedes restablecer tu cuenta de Twitter si la desactivaste por error o accidente.
+
+## Tabla
+
+| Mayúscula | Minúscula |
+| --------- | --------- |
+|     A     |    a      |
+| B         | b         |
+| C         | c         |
+
+| Mayus | Minus | Otro |
+|-------|------:|------|
+| A     |     a | alfa |
+| B     |     b | beta |
+
+
+# R Markdown
+
+```{r}
+# 1
+print("1 hola mundo")
+```
+
+```{r echo=FALSE}
+# 2
+print("2 hola mundo")
+```
+
+```{r results= FALSE}
+# 3
+print("3 hola mundo")
+```
+
+```{r message=FALSE}
+# 4
+message("4 hola mundo")
+2 + 2
+```
+
+```{r warning=FALSE}
+# 5
+warning("5 hola mundo")
+2 + 2
+```
+
+```{r error=TRUE}
+# 6
+stop("Este es un error")
+```
+
+## Regresión
+
+$$y = \beta_0 + \beta_1 x + \varepsilon$$
+
+```{r}
+x <- rnorm(100)
+epsilon <- rnorm(100)
+
+y <- 1 + 2*x + epsilon
+
+df <- data.frame(x, y)
+
+diez <- head(df, 10)
+
+diez
+
+# 1
+knitr::kable(diez, caption = "Diez observaciones de la variable", digits = 2)
+
+# 2
+plot(df)
+
+# 3
+model <- lm(y ~ x, data = df)
+# summary(model)
+```
+
+El valor de $\beta_0$ estimado es `r model$coefficients[1]`, y el valor de $\beta_1$ estimado es `r model$coefficients[2]`
+  
+  
+
+
+
+
