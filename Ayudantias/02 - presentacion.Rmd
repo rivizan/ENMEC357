@@ -1,0 +1,567 @@
+---
+title: "Introducción a Tidyquant"
+subtitle: "Tópicos en Economía y Negocios <br/> Utilizando R"
+author: "Ricardo Villarreal"
+institute: "FEN"
+date: "4/11/2020"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, out.width=750,
+                      fig.asp = .75)
+library(rmarkdown)
+```
+
+# Tidyquant
+
+*Megapaquete*
+
+- `xts`, `zoo`
+- `TTR`, `Quantmod`
+- `PerformanceAnalitycs`
+
+Integrado con `tidyverse`!!!
+
+
+## Para esta ayudantía
+
+```{r}
+library(tidyverse)
+library(tidyquant)
+```
+
+---
+## Las 5 funciones
+### Importar
+
+- `tq_get()`
+
+### Manipular
+
+- `tq_transmute()`
+- `tq_mutate()`
+- `tq_portfolio()`
+
+### Modelar
+
+- `tq_performance()`
+---
+
+# Importar
+
+Descargar *S&P500* (^GSPC) desde el 27 de octubre de 2019 hasta el 27 de octubre de 2020
+
+```{r results=FALSE}
+sp500 <- tq_get("^GSPC", from = "2019-10-27", to = "2020-10-27")
+sp500
+```
+
+```{r echo=FALSE}
+paged_table(sp500)
+```
+
+---
+
+## Graficamos
+
+
+
+```{r}
+gsp500 <- sp500 %>% 
+  ggplot(aes(x = date, y = adjusted)) +
+    geom_line() +
+    theme_tq() +
+    labs(title = "SP500", x = "Fecha", y = "Precio")
+```
+
+---
+
+```{r}
+gsp500
+```
+
+---
+
+
+## Datos económicos
+
+```{r, results=FALSE}
+cn_gdppc <- tq_get(x    = "NYGDPPCAPKDCHN",
+                   get  = "economic.data",
+                   from = "1960-01-01")
+cn_gdppc
+```
+
+```{r echo=FALSE}
+paged_table(cn_gdppc)
+```
+
+---
+
+## Graficamos
+```{r}
+gcn <- cn_gdppc %>% 
+  ggplot(aes(x = date, y = price))+
+    geom_line(color = "steelblue", size = 2) +
+    scale_y_log10() +
+    theme_tq() +
+    labs(title = "Constant GDP per capita for China",
+         x     = "Date",
+         y     = "2010 US. Dollars")
+```
+
+---
+```{r}
+gcn
+```
+---
+
+## Propuesto
+
+Generar seria de tiempo de *spread* entre tasas de interés, mostrando los periodos ne que Estados Unidos ha entrado en recesión.
+
+### Tasas de interés
+
+```{r, results=FALSE}
+dgs <- c("DGS2", "DGS10")
+
+tbl <- tq_get(x    = dgs,
+              get  = "economic.data",
+              from = "1977-01-01",
+              to = "2010-01-01")
+
+```
+
+---
+
+```{r, results=FALSE}
+tbl <- tbl %>% 
+  group_by(symbol) %>%
+  tq_transmute(select = price, mutate_fun = to.monthly) %>%
+  spread(symbol, price) %>%
+  mutate(spread = DGS10 - DGS2)
+tbl
+```
+
+```{r echo=FALSE}
+paged_table(tbl)
+```
+
+---
+
+### Recesiones
+
+```{r results=F}
+USREC <- tq_get(x    = "USREC",
+                get  = "economic.data",
+                from = "1977-01-01",
+                to   = "2010-01-01")
+
+USREC
+```
+
+```{r echo=FALSE}
+paged_table(USREC)
+```
+
+---
+
+```{r}
+aux <- as.Date("1990-01-01")
+RECdf <- tibble(init = aux, fin = aux)
+rango <- 1:nrow(USREC)
+rec <- FALSE
+crisis <- 0
+
+for (i in rango) {
+  if (USREC[[i, 3]] & !rec) {
+    rec <- TRUE
+    crisis <- crisis + 1
+    RECdf[crisis, 1] <- USREC[[i, 2]]
+  } else if (!USREC[[i, 3]] & rec) {
+    rec <- FALSE
+    RECdf[crisis, 2] <- USREC[[i - 1, 2]]
+  }
+}
+
+RECdf
+```
+
+---
+
+```{r eval = FALSE}
+cortes <- as.Date(c("1990-01-01", "2000-01-01", "2010-01-01"))
+cap <- "Source: Federal Reserve Bank of St. Louis. Shaded areas indicate U.S. recessions"
+
+ggplot() +
+  geom_rect(data = RECdf,
+            aes(xmin = init,
+                xmax = fin,
+                ymin = -Inf,
+                ymax = Inf),
+    alpha = 0.25) +
+  geom_line(data = tbl,
+            aes(x = as.Date(date),
+                y = spread),
+            color = "darkblue",
+            size = 1) +
+  labs(title = "Yield curve's track",
+       subtitle = "Spread between 2-year and 10-year Treasuries (% points)",
+       caption = cap,
+       x = "",
+       y = "") +
+  theme_tq()
+
+```
+
+---
+
+```{r echo=FALSE}
+cortes <- as.Date(c("1990-01-01", "2000-01-01", "2010-01-01"))
+cap <- "Source: Federal Reserve Bank of St. Louis. Shaded areas indicate U.S. recessions"
+
+ggplot() +
+  geom_rect(data = RECdf,
+            aes(xmin = init,
+                xmax = fin,
+                ymin = -Inf,
+                ymax = Inf),
+    alpha = 0.25) +
+  geom_line(data = tbl,
+            aes(x = as.Date(date),
+                y = spread),
+            color = "darkblue",
+            size = 1) +
+  labs(title = "Yield curve's track",
+       subtitle = "Spread between 2-year and 10-year Treasuries (% points)",
+       caption = cap,
+       x = "",
+       y = "") +
+  theme_tq()
+```
+
+---
+## Distintas posibilidades
+
+```{r}
+tq_get_options()
+tq_index_options()
+tq_exchange_options()
+```
+
+
+---
+
+## Precios Acciones
+
+```{r, results=F}
+tk <- c("FB", "AMZN", "NFLX", "GOOG")
+
+fang <- tq_get(tk, from = "2015-01-01")
+
+fang
+```
+
+
+```{r echo=FALSE}
+paged_table(fang)
+```
+
+---
+# Manipular
+## Retornos trimestrales
+
+
+```{r results=FALSE}
+qret <- fang %>%
+  group_by(symbol) %>%
+  tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,        
+               period = "quarterly",               
+               type = "arithmetic",                     
+               col_rename = "returns")
+
+qret
+```
+
+```{r echo=FALSE}
+paged_table(qret, options = list(rows.print = 5))
+```
+
+---
+## Graficamos
+
+```{r}
+gqret <- qret %>%
+  ggplot(aes(x = date, y = returns, group = symbol, fill = symbol)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 0) +
+  theme_tq() +
+  scale_fill_tq() +
+  labs(title = "Retornos Trimestrales",
+       subtitle = "Facebook (FB), Amazon (AMZN), Netflix (NFLX) y Google (GOOG)",
+       caption = "Fuente: Yahoo Finance") +
+  facet_wrap(~symbol, 2)
+```
+
+---
+```{r}
+gqret
+
+```
+
+---
+
+## Retornos logarítmicos
+
+```{r}
+dret <- fang %>%
+  group_by(symbol) %>%
+  tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,        
+               period = "daily",               
+               type = "log",                     
+               col_rename = "returns")
+
+```
+
+---
+
+## Graficamos
+
+```{r}
+gdret <- dret %>%
+  ggplot(aes(returns, group = symbol)) +
+  geom_density(aes(fill = symbol), size = 1, alpha = 0.5) +
+  theme_tq() +
+  scale_fill_tq() +
+  facet_wrap(~symbol, nrow = 2, scales = "free_x") +
+  labs(title = "Distribución de retornos",
+       subtitle = "Facebook (FB), Amazon (AMZN), Netflix (NFLX) y Google (GOOG)",
+       caption = "Fuente: Yahoo Finance",
+       x = "Retorno",
+       y = "Densidad") +
+  theme(legend.position = "none")
+```
+
+---
+
+```{r}
+gdret
+```
+
+---
+
+## Retornos Acumulados
+
+```{r}
+monret <- fang %>%
+  group_by(symbol) %>%
+  tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,        
+               period = "monthly",               
+               type = "log",                     
+               col_rename = "returns") 
+
+monacum <- monret %>%
+  mutate(acum = cumsum(returns))
+
+```
+
+---
+```{r results=F}
+nflx_sma <- monacum %>%
+  filter(symbol == "NFLX") %>%
+  ungroup() %>%
+  select(-symbol, -returns) %>%
+  tq_mutate(select = acum,
+            mutate_fun = SMA,
+            n = 6)
+
+nflx_sma
+```
+
+```{r echo=F}
+paged_table(nflx_sma, options = list(rows.print = 12))
+```
+
+---
+
+## Graficamos
+
+```{r}
+gnfl <- nflx_sma %>% 
+  gather(series, value, -date) %>%
+  ggplot(aes(x = date, y = value, group = series)) +
+  geom_line(aes(color = series), size = 1) +
+  theme_tq() +
+  scale_fill_tq() +
+  labs(title = "Netflix",
+       subtitle = "Retornos acumulados desde 2015",
+       caption = "Fuente: Yahoo Finance",
+       x = "Fecha",
+       y = "Retorno Acumulado")
+```
+
+---
+
+```{r}
+gnfl
+```
+
+---
+
+## ¿Era necesario?
+
+Se pueden lograr resultados similares sin haber hecho ninguna transformación.
+
+```{r}
+end <-as.Date("2020-01-01")  #max(fang$date)
+start <- end - months(3)
+
+gnfl2 <- fang %>%
+  filter(date %in% (start - 40):end & symbol == "NFLX") %>%
+  ggplot(aes(x = date, y = close, 
+             open = open, high = high, low = low, close = close)) +
+  geom_candlestick() +
+  theme_tq() +
+  labs(title = "Netflix",
+       subtitle = "Cuarto trimestre de 2019",
+       caption = "Fuente: Elaboración propia con datos de Yahoo Finance",
+       y = "Precio",
+       x = "Fecha") +
+  coord_x_date(xlim = c(start, end))
+```
+
+---
+
+
+
+```{r}
+gnfl2
+```
+
+---
+
+
+
+```{r}
+gnfl2 + geom_bbands(ma_fun = SMA, linetype = 4)
+```
+
+
+
+---
+
+## Posibilidades
+
+- ¿Qué funciones puedo integrar en la opción `mutate_fun`?
+
+Muchas, tantas que no caben en una diapositiva.
+Pero se pueden revisar con el comando `tq_mutate_fun_options()`
+
+- ¿Cómo sé los argumentos de cada función?
+
+Con el comando `args()`.
+Por ejemplo:
+
+```{r}
+args(periodReturn)
+```
+
+O bien leer la documentación con `help(periodReturn)` o `?periodReturn`.
+
+---
+# Armar un portafolio
+
+```{r}
+w <- c(.25, .25, .25, .25)
+
+portf <- monret %>%
+  tq_portfolio(assets_col = symbol,
+               returns_col = returns,
+               weights = w,
+               col_rename = "returns") %>%
+  mutate(symbol = "Portfolio")
+```
+
+```{r echo = F}
+paged_table(portf, options = list(rows.print = 5))
+```
+
+
+
+
+
+---
+
+# Rendimiento
+
+
+```{r}
+fullret <- monret %>%
+  bind_rows(portf)
+
+fullret %>%
+  group_by(symbol) %>%
+  summarise(er = mean(returns),
+            sd = sd(returns))
+```
+
+---
+
+## Retornos anualizados
+
+
+```{r}
+fullret %>%
+  group_by(symbol) %>%
+  tq_performance(Ra = returns,
+                 performance_fun = table.AnnualizedReturns,
+                 Rf = 0.02/12)
+
+```
+
+---
+## CAPM
+
+```{r}
+sp500 %>%
+  tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,        
+               period = "monthly",               
+               type = "log",                     
+               col_rename = "sp500") %>%
+  full_join(fullret) %>%
+  na.omit() %>%
+  group_by(symbol) %>%
+  tq_performance(Ra = returns,
+                 Rb = sp500,
+                 performance_fun = table.CAPM,
+                 Rf = 0.02/12)
+  
+```
+
+
+
+---
+# Posibilidades
+
+
+Para conocer las distintas funciones disponibles en la opción `performance_fun`,  podemos ejecutar el comando `tq_performance_fun_options()`.
+
+También nos ayudará utilizar `args()` para saber qué argumentos permite cada función.
+
+---
+
+# Gracias
+
+Totales
+
