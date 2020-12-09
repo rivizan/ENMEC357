@@ -1,6 +1,6 @@
 ---
-title: Tarea 3
-author: AirBnB Santiago
+title: AirBnB Santiago
+author: Ricardo Villarreal
 output: 
   flexdashboard::flex_dashboard:
     orientation: row
@@ -97,6 +97,7 @@ selectInput("typo", label = label2,
 ```
 *Nota:* La base de datos AirBnB fue obtenida de *[insideairbnb.com](http://insideairbnb.com).*
 Se eliminaron las observaciones cuyo precio se encontraban sobre el percentil 97,5 y bajo el percentil 2,5.
+Este proyecto fue creado solamente con fines educativos.
 
 
 Listado
